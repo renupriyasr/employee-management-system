@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0 0 10px;
+        }
+
+        header p {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #00000015;
+        }
+
+        h2 {
+            color: #172554;
+            margin-top: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            background: #2563eb;
+            margin: 10px 5px 0 0;
+        }
+
+        button:hover:not(:disabled) {
+            opacity: 0.85;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .edit-btn {
+            background: #0f766e;
+            margin: 0 4px 0 0;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+            margin: 0;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .search-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #dbeafe;
+            color: #172554;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .status-active {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .pagination button {
+            margin: 0;
+        }
+
+        #pageInfo {
+            font-weight: bold;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                margin: 12px;
+                padding: 15px;
+            }
+
+            .form-grid,
+            .search-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Employee Management System</h1>
+    <p>Manage your employees in one place</p>
+</header>
+
+<div class="container">
+
+    <h2 id="formTitle">Add New Employee</h2>
+
+    <form id="employeeForm">
+        <div class="form-grid">
+
+            <input type="text" id="name"
+                   placeholder="Full Name" required>
+
+            <input type="email" id="email"
+                   placeholder="Email Address" required>
+
+            <input type="tel" id="phoneNumber"
+                   placeholder="Phone Number"
+                   pattern="[0-9+\-\s()]{7,20}"
+                   title="Enter a valid phone number"
+                   required>
+
+            <select id="department" required>
+                <option value="">Select Department</option>
+                <option value="IT">IT</option>
+                <option value="HR">HR</option>
+                <option value="Finance">Finance</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Data Analytics">Data Analytics</option>
+                <option value="Cyber Security">Cyber Security</option>
+                <option value="Operations">Operations</option>
+                <option value="Sales">Sales</option>
+            </select>
+
+            <input type="text" id="designation"
+                   placeholder="Designation / Job Title" required>
+
+            <input type="date" id="dateOfJoining"
+                   aria-label="Date of Joining" required>
+
+            <input type="number" id="salary"
+                   placeholder="Monthly Salary"
+                   min="0" step="0.01" required>
+
+            <select id="status" required>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+
+        </div>
+
+        <button type="submit" id="submitButton">Add Employee</button>
+
+        <button type="button" onclick="resetForm()">Clear Form</button>
+
+        <button type="button" onclick="loadEmployees()">
+            Refresh Employees
+        </button>
+    </form>
+
+    <p id="message" class="message" role="status"></p>
+
+    <h2>Employee Records</h2>
+
+    <div class="search-container">
+        <input type="search" id="searchInput"
+               placeholder="Search by name, email, phone or designation">
+
+        <select id="departmentFilter">
+            <option value="">All Departments</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Data Analytics">Data Analytics</option>
+            <option value="Cyber Security">Cyber Security</option>
+            <option value="Operations">Operations</option>
+            <option value="Sales">Sales</option>
+        </select>
+
+        <select id="statusFilter">
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+
+        <button type="button" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Department</th>
+                <th>Designation</th>
+                <th>Date of Joining</th>
+                <th>Salary</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
+            <tbody id="employeeTable">
+            <tr>
+                <td colspan="10" class="empty-message">
+                    Loading employee records...
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <button id="previousPage" type="button"
+                    onclick="changePage(-1)">Previous</button>
+
+            <span id="pageInfo">Page 1 of 1</span>
+
+            <button id="nextPage" type="button"
+                    onclick="changePage(1)">Next</button>
+        </div>
+    </div>
+
+    <p id="recordCount"></p>
+
+</div>
+
+<script>
+    const apiUrl = "/api/employees";
+    const employeesPerPage = 6;
+
+    const form = document.getElementById("employeeForm");
+    const message = document.getElementById("message");
+    const table = document.getElementById("employeeTable");
+
+    const searchInput = document.getElementById("searchInput");
+    const departmentFilter = document.getElementById("departmentFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const recordCount = document.getElementById("recordCount");
+
+    const previousPageButton = document.getElementById("previousPage");
+    const nextPageButton = document.getElementById("nextPage");
+    const pageInfo = document.getElementById("pageInfo");
+
+    let employees = [];
+    let editingId = null;
+    let currentPage = 1;
+
+    function showMessage(text, success) {
+        message.textContent = text;
+        message.style.color = success ? "#15803d" : "#dc2626";
+    }
+
+    function resetForm() {
+        form.reset();
+        editingId = null;
+
+        document.getElementById("formTitle").textContent =
+            "Add New Employee";
+
+        document.getElementById("submitButton").textContent =
+            "Add Employee";
+
+        document.getElementById("status").value = "Active";
+    }
+
+    async function loadEmployees() {
+        try {
+            const response = await fetch(apiUrl);
+
+            if (!response.ok) {
+                throw new Error("Server returned " + response.status);
+            }
+
+            employees = await response.json();
+            displayEmployees();
+
+        } catch (error) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="10" class="empty-message">
+                        Unable to load employees. Please check the server.
+                    </td>
+                </tr>
+            `;
+
+            showMessage("Unable to load employee records.", false);
+            console.error("Load error:", error);
+        }
+    }
+
+    function displayEmployees() {
+        const searchText = searchInput.value.trim().toLowerCase();
+        const selectedDepartment = departmentFilter.value.toLowerCase();
+        const selectedStatus = statusFilter.value.toLowerCase();
+
+        const filteredEmployees = employees.filter(employee => {
+            const searchableText = [
+                employee.name,
+                employee.email,
+                employee.phoneNumber,
+                employee.department,
+                employee.designation
+            ].map(value => String(value || "").toLowerCase()).join(" ");
+
+            const matchesSearch = searchableText.includes(searchText);
+
+            const matchesDepartment =
+                !selectedDepartment ||
+                String(employee.department || "").toLowerCase()
+                === selectedDepartment;
+
+            const matchesStatus =
+                !selectedStatus ||
+                String(employee.status || "Active").toLowerCase()
+                === selectedStatus;
+
+            return matchesSearch && matchesDepartment && matchesStatus;
+        });
+
+        const totalPages = Math.max(
+            1,
+            Math.ceil(filteredEmployees.length / employeesPerPage)
+        );
+
+        // Keep the current page valid after searching or filtering.
+        currentPage = Math.min(currentPage, totalPages);
+        currentPage = Math.max(currentPage, 1);
+
+        const startIndex = (currentPage - 1) * employeesPerPage;
+        const endIndex = startIndex + employeesPerPage;
+
+        const employeesToDisplay =
+            filteredEmployees.slice(startIndex, endIndex);
+
+        table.innerHTML = "";
+
+        if (filteredEmployees.length === 0) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="10" class="empty-message">
+                        No employee records found.
+                    </td>
+                </tr>
+            `;
+        } else {
+            employeesToDisplay.forEach(employee => {
+                const row = document.createElement("tr");
+
+                const values = [
+                    employee.id,
+                    employee.name,
+                    employee.email,
+                    employee.phoneNumber,
+                    employee.department,
+                    employee.designation,
+                    employee.dateOfJoining,
+                    employee.salary,
+                    employee.status || "Active"
+                ];
+
+                values.forEach((value, index) => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value ?? "";
+
+                    if (index === 8) {
+                        cell.className =
+                            String(value || "Active").toLowerCase() === "active"
+                                ? "status-active"
+                                : "status-inactive";
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                const actionCell = document.createElement("td");
+
+                const editButton = document.createElement("button");
+                editButton.type = "button";
+                editButton.textContent = "Edit";
+                editButton.className = "edit-btn";
+                editButton.addEventListener("click", () => {
+                    editEmployee(employee.id);
+                });
+
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.textContent = "Delete";
+                deleteButton.className = "delete-btn";
+                deleteButton.addEventListener("click", () => {
+                    deleteEmployee(employee.id);
+                });
+
+                actionCell.appendChild(editButton);
+                actionCell.appendChild(deleteButton);
+                row.appendChild(actionCell);
+
+                table.appendChild(row);
+            });
+        }
+
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        previousPageButton.disabled = currentPage <= 1;
+        nextPageButton.disabled = currentPage >= totalPages;
+
+        const firstRecord = filteredEmployees.length === 0
+            ? 0
+            : startIndex + 1;
+
+        const lastRecord = Math.min(endIndex, filteredEmployees.length);
+
+        recordCount.textContent =
+            `Showing ${firstRecord}-${lastRecord} of ` +
+            `${filteredEmployees.length} filtered employees ` +
+            `(${employees.length} total employees)`;
+    }
+
+    function changePage(direction) {
+        currentPage += direction;
+        displayEmployees();
+    }
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const employee = {
+            name: document.getElementById("name").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            phoneNumber: document.getElementById("phoneNumber").value.trim(),
+            department: document.getElementById("department").value,
+            designation: document.getElementById("designation").value.trim(),
+            dateOfJoining: document.getElementById("dateOfJoining").value,
+            salary: Number(document.getElementById("salary").value),
+            status: document.getElementById("status").value
+        };
+
+        const isEditing = editingId !== null;
+
+        const url = isEditing
+            ? `${apiUrl}/${editingId}`
+            : apiUrl;
+
+        try {
+            const response = await fetch(url, {
+                method: isEditing ? "PUT" : "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(employee)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(
+                    "Server returned " + response.status +
+                    (errorText ? ": " + errorText : "")
+                );
+            }
+
+            showMessage(
+                isEditing
+                    ? "Employee updated successfully!"
+                    : "Employee added successfully!",
+                true
+            );
+
+            resetForm();
+
+            // Show the first page after adding a new employee.
+            if (!isEditing) {
+                currentPage = 1;
+            }
+
+            await loadEmployees();
+
+        } catch (error) {
+            showMessage(
+                "Unable to save employee. Check the entered details.",
+                false
+            );
+
+            console.error("Save error:", error);
+        }
+    });
+
+    function editEmployee(id) {
+        const employee = employees.find(item => item.id === id);
+
+        if (!employee) {
+            showMessage("Employee record not found.", false);
+            return;
+        }
+
+        editingId = id;
+
+        document.getElementById("name").value = employee.name || "";
+        document.getElementById("email").value = employee.email || "";
+        document.getElementById("phoneNumber").value =
+            employee.phoneNumber || "";
+
+        document.getElementById("department").value =
+            employee.department || "";
+
+        document.getElementById("designation").value =
+            employee.designation || "";
+
+        document.getElementById("dateOfJoining").value =
+            employee.dateOfJoining || "";
+
+        document.getElementById("salary").value =
+            employee.salary ?? "";
+
+        document.getElementById("status").value =
+            employee.status || "Active";
+
+        document.getElementById("formTitle").textContent =
+            "Edit Employee #" + id;
+
+        document.getElementById("submitButton").textContent =
+            "Update Employee";
+
+        form.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+        showMessage(
+            "Editing employee #" + id +
+            ". Change the details and click Update Employee.",
+            true
+        );
+    }
+
+    async function deleteEmployee(id) {
+        const confirmed = confirm(
+            "Are you sure you want to delete employee #" + id + "?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/${id}`, {
+                method: "DELETE"
+            });
+
+            if (!response.ok) {
+                throw new Error("Server returned " + response.status);
+            }
+
+            showMessage("Employee deleted successfully!", true);
+
+            if (editingId === id) {
+                resetForm();
+            }
+
+            await loadEmployees();
+
+        } catch (error) {
+            showMessage("Unable to delete employee.", false);
+            console.error("Delete error:", error);
+        }
+    }
+
+    function clearFilters() {
+        searchInput.value = "";
+        departmentFilter.value = "";
+        statusFilter.value = "";
+        currentPage = 1;
+
+        displayEmployees();
+    }
+
+    // Return to the first page whenever search or filters change.
+    searchInput.addEventListener("input", () => {
+        currentPage = 1;
+        displayEmployees();
+    });
+
+    departmentFilter.addEventListener("change", () => {
+        currentPage = 1;
+        displayEmployees();
+    });
+
+    statusFilter.addEventListener("change", () => {
+        currentPage = 1;
+        displayEmployees();
+    });
+
+    loadEmployees();
+</script>
+
+</body>
+</html>
